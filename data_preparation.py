@@ -21,8 +21,10 @@ def create_dataset():
 
     # Preprocessing-function
     train_transforms = transforms.Compose([
+        transforms.Resize((256, 256)),
         transforms.RandomResizedCrop(224),
         transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(degrees=5),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
@@ -77,12 +79,14 @@ def split_dataset(train_dataset, test_dataset):
 
 # Visualize datasets
 def imshow(inp, title=None):
-    inp = inp.numpy().transpose((1, 2, 0))
+    inp = inp.numpy().transpose((1, 2, 0))  # (1 is height, 2 is width, 0 is batch size)
     mean = np.array([0.485, 0.456, 0.406])
     std = np.array([0.229, 0.224, 0.225])
     inp = std * inp + mean
     inp = np.clip(inp, 0, 1)
+
     plt.imshow(inp)
+    plt.axis('off')
     if title is not None:
         plt.title(title)
     plt.pause(0.001)
@@ -98,9 +102,13 @@ if __name__ == '__main__':
     # print(len(dictionary["test"]))
 
     # Get a batch of training data
+    # image, classes = next(iter(dictionary['test']))
+    # print(class_names[classes])
+    # print(f"The images in a test batch are: {image}")
+
     image, classes = next(iter(dictionary['train']))
-
+    image = image[:8]
+    classes = classes[:8]
     # Make a grid from batch
-    out = torchvision.utils.make_grid(image, padding=2)
+    out = torchvision.utils.make_grid(image, nrow=4)
     imshow(out, title=[class_names[x] for x in classes])
-
