@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from torch.utils.data.sampler import SubsetRandomSampler
 import matplotlib.pyplot as plt
+plt.ion()
 
 
 def device_check():
@@ -86,7 +87,6 @@ def imshow(inp, title=None):
     plt.imshow(inp)
     if title is not None:
         plt.title(title)
-    plt.axis('off')
     plt.pause(0.001)
 
 
