@@ -15,6 +15,7 @@ def device_check():
         else "cpu"
     )
     print(f"\nUsing {device} device for training the CNN model.")
+    return device
 
 
 def create_dataset():
@@ -45,13 +46,13 @@ def create_dataset():
     return train_dataset, test_dataset, class_names
 
 
-def split_dataset(train_dataset, test_dataset):
+def split_dataset(train_ds, test_ds, device):
     # training indices that will be used for validation
 
     # Percentage of validation split
     valid_size = 0.2
 
-    num_train = len(train_dataset)
+    num_train = len(train_ds)
     indices = list(range(num_train))
     np.random.shuffle(indices)
     split = int(np.floor(valid_size * num_train))
@@ -62,16 +63,19 @@ def split_dataset(train_dataset, test_dataset):
     train_sampler = SubsetRandomSampler(train_index)
     valid_sampler = SubsetRandomSampler(valid_index)
 
-    print(f"Train dataset has: {len(train_dataset)} images, which are split into:\n"
+    print(f"Train dataset has: {len(train_ds)} images, which are split into:\n"
           f" {len(train_index)} train samples and\n"
           f" {len(valid_index)} validation samples.")
-    print(f"Test dataset has {len(test_dataset)} images.\n")
+    print(f"Test dataset has {len(test_ds)} images.\n")
 
     # wrap datasets into iterable datasets using DataLoader
 
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=24, sampler=train_sampler, num_workers=4)
-    valid_loader = torch.utils.data.DataLoader(train_dataset, batch_size=24, sampler=valid_sampler, num_workers=4)
-    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=3, shuffle=False, num_workers=4)
+    train_loader = torch.utils.data.DataLoader(train_ds, batch_size=24, sampler=train_sampler, num_workers=4,
+                                               pin_memory=True, pin_memory_device=device)
+    valid_loader = torch.utils.data.DataLoader(train_ds, batch_size=24, sampler=valid_sampler, num_workers=4,
+                                               pin_memory=True, pin_memory_device=device)
+    test_loader = torch.utils.data.DataLoader(test_ds, batch_size=3, shuffle=False, num_workers=1,
+                                              pin_memory=True, pin_memory_device=device)
 
     loaders = dict(train=train_loader, valid=valid_loader, test=test_loader)
     return loaders
@@ -91,22 +95,15 @@ def imshow(inp, title=None):
 
 
 if __name__ == '__main__':
-    device_check()
-    train, test, class_names = create_dataset()
-    dictionary = split_dataset(train, test)
-
-    # print(len(dictionary["train"]))
-    # print(len(dictionary["valid"]))
-    # print(len(dictionary["test"]))
+    device_name = device_check()
+    train, test, classnames = create_dataset()
+    dictionary = split_dataset(train, test, device_name)
 
     # Get a batch of training data
-    # image, classes = next(iter(dictionary['test']))
-    # print(class_names[classes])
-    # print(f"The images in a test batch are: {image}")
-
     image, classes = next(iter(dictionary['train']))
     image = image[:8]
     classes = classes[:8]
+
     # Make a grid from batch
     out = torchvision.utils.make_grid(image, nrow=4)
-    imshow(out, title=[class_names[x] for x in classes])
+    imshow(out, title=[classnames[x] for x in classes])
