@@ -28,10 +28,8 @@ class Convolution(nn.Module):
     def backward(self, output_gradient, learning_rate):
         loss_function = Loss.CrossEntropyLoss()
         loss = loss_function(self.forward(self.input), output_gradient)
-
         optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-
         return loss.item()
