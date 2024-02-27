@@ -30,8 +30,8 @@ class Convolution(Layer):
 
         return self.output
 
-    def backward(self, output_gradient, learning_rate):
-        kernels_gradient = np.zeros_like(self.kernels)
-        input_gradient = np.zeros_like(self.input)
+    # def backward(self, output_gradient, learning_rate):
+    #     kernels_gradient = np.zeros_like(self.kernels)
+    #     input_gradient = np.zeros_like(self.input)
 
 
