@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from Activation import LogSoftmax
+from CustomLayers.Activation import LogSoftmax
 
 
 class CrossEntropyLoss(nn.Module):

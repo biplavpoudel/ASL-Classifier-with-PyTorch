@@ -30,7 +30,8 @@ class Dense(nn.Module):
         return self.linear(input, self.weight, self.bias)
 
     def linear(self, input, weight, bias):
+        input = input.to(weight.device)
         output = input.matmul(self.weight.t())
-        if self.bias is not None:
-            output += self.bias
+        if bias is not None:
+            output += bias
         return output

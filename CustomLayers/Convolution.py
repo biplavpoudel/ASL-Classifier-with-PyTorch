@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import Loss
 
 
 class Convolution(nn.Module):
@@ -19,10 +18,10 @@ class Convolution(nn.Module):
         self.kernel_shape = (filters, input_depth, kernel_size, kernel_size)
         self.kernels = nn.Parameter(torch.randn(*self.kernel_shape))
         # This is equivalent to: self.kernels = np.random.randn((64,3,3,3))
-        self.biases = nn.Parameter(torch.randn(*self.output_shape))
-
+        # self.biases = nn.Parameter(torch.randn(*self.output_shape))
+        self.biases = nn.Parameter(torch.randn(filters))
     def forward(self, input):
-        input = input
+        input = input.to(self.kernels.device)
         output = F.conv2d(input, self.kernels, bias=self.biases, stride=self.stride, padding=0)
         return output
     #
