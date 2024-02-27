@@ -27,7 +27,9 @@ class Dense(nn.Module):
             nn.init.uniform_(self.bias, -bound, bound)
 
     def forward(self, input):
-        return self.linear(input, self.weight, self.bias)
+        output = self.linear(input, self.weight, self.bias)
+        torch.cuda.empty_cache()
+        return output
 
     def linear(self, input, weight, bias):
         input = input.to(weight.device)

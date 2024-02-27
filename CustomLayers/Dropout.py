@@ -9,13 +9,15 @@ class Dropout(nn.Module):
         self.inplace = inplace
 
     def forward(self, input):
-        return self.dropout(input, self.p, training=self.training, inplace=self.inplace)
+        output = self.dropout(input, self.p, training=self.training, inplace=self.inplace)
+        torch.cuda.empty_cache()
+        return output
 
     def dropout(self, input, prob=0.5, training=True, inplace=False):
         if training:
-            if self.inplace:
+            if inplace:
                 # dropout in-place i.e. tensor is modified directly
-                mask = (torch.rand(input.shape) >= prob).to(input.device)
+                mask = (torch.rand(input.shape, device=input.device) >= prob).to(input.device)
                 # mask is a boolean mask
                 input *= mask / (1-prob)
                 # multiplying by 1 / (1 - prob) "scales" the remaining elements by
@@ -30,9 +32,8 @@ class Dropout(nn.Module):
                 return input
             else:
                 # dropout out-of-place i.e. new tensor is created
-                mask = (torch.rand(input.shape) >= prob).float()
+                mask = (torch.rand(input.shape, device=input.device) >= prob).float().to(input.device)
                 return input * mask/(1-prob)
         else:
-            return input     # no dropout
-
+            return input  # no dropout
 

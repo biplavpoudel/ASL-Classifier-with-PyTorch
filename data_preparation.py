@@ -70,9 +70,10 @@ def split_dataset(train_ds, test_ds, device):
 
     # wrap datasets into iterable datasets using DataLoader
 
-    train_loader = torch.utils.data.DataLoader(train_ds, batch_size=24, sampler=train_sampler, num_workers=4,
+    train_loader = torch.utils.data.DataLoader(train_ds, batch_size=16, sampler=train_sampler, num_workers=4,
                                                pin_memory=True, pin_memory_device=device)
-    valid_loader = torch.utils.data.DataLoader(train_ds, batch_size=24, sampler=valid_sampler, num_workers=4,
+
+    valid_loader = torch.utils.data.DataLoader(train_ds, batch_size=16, sampler=valid_sampler, num_workers=4,
                                                pin_memory=True, pin_memory_device=device)
     test_loader = torch.utils.data.DataLoader(test_ds, batch_size=3, shuffle=False, num_workers=1,
                                               pin_memory=True, pin_memory_device=device)

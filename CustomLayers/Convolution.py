@@ -20,16 +20,9 @@ class Convolution(nn.Module):
         # This is equivalent to: self.kernels = np.random.randn((64,3,3,3))
         # self.biases = nn.Parameter(torch.randn(*self.output_shape))
         self.biases = nn.Parameter(torch.randn(filters))
+
     def forward(self, input):
-        input = input.to(self.kernels.device)
+        input = input.to("cuda")
         output = F.conv2d(input, self.kernels, bias=self.biases, stride=self.stride, padding=0)
+        torch.cuda.empty_cache()
         return output
-    #
-    # def backward(self, output_gradient, learning_rate):
-    #     loss_function = Loss.CrossEntropyLoss()
-    #     loss = loss_function(self.forward(self.input), output_gradient)
-    #     optimizer = torch.optim.Adam(self.parameters(), lr=learning_rate)
-    #     optimizer.zero_grad()
-    #     loss.backward()
-    #     optimizer.step()
-    #     return loss.item()

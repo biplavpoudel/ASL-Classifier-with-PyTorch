@@ -15,7 +15,7 @@ class RectifiedLinearUnit(nn.Module):
     def __init__(self):
         super(RectifiedLinearUnit, self).__init__()
 
-    def forward(self,input_tensor):
-        return torch.max(input_tensor, torch.tensor(0))
+    def forward(self, input_tensor):
+        return input_tensor * (input_tensor > 0).float()
 
 
