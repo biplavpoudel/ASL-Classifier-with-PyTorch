@@ -1,29 +1,28 @@
 import torch
 import torch.nn as nn
-from CustomLayers.Convolution import Convolution
-from CustomLayers.Activation import RectifiedLinearUnit
-from CustomLayers.MaxPool import MaxPool2d
-from CustomLayers.Loss import CrossEntropyLoss
-from CustomLayers.Dropout import Dropout
-from CustomLayers.Flatten import Flatten
-from CustomLayers.Dense import Dense
-from CustomLayers.Activation import LogSoftmax
-
+import torch.nn.functional as F
+from torch.nn import ReLU as RectifiedLinearUnit
+from torch.nn import Conv2d as Convolution
+from torch.nn import Dropout
+from torch.nn import MaxPool2d
+from torch.nn import Flatten
+from torch.nn import Linear as Dense
+from torch.nn import LogSoftmax as LogSoftmax
 
 class ASLClassifier(nn.Module):
     def __init__(self, num_classes=26):
         super(ASLClassifier, self).__init__()
-        self.conv1 = Convolution(filters=32, kernel_size=3, input_shape=(3, 224, 224))
+        self.conv1 = Convolution(in_channels=3, out_channels=32, kernel_size=3)
         self.activation1 = RectifiedLinearUnit()
-        self.pool1 = MaxPool2d(pool_size=2, stride=2)
-        self.conv2 = Convolution(filters=64, kernel_size=3, input_shape=(32, 111, 111))
+        self.pool1 = MaxPool2d(kernel_size=2, stride=2)
+        self.conv2 = Convolution(in_channels=32, out_channels=64, kernel_size=3)
         self.activation2 = RectifiedLinearUnit()
-        self.pool2 = MaxPool2d(pool_size=2, stride=2)
-        self.conv3 = Convolution(filters=64, kernel_size=3, input_shape=(64, 54, 54))
+        self.pool2 = MaxPool2d(kernel_size=2, stride=2)
+        self.conv3 = Convolution(in_channels=64, out_channels=64, kernel_size=3)
         self.activation3 = RectifiedLinearUnit()
-        self.pool3 = MaxPool2d(pool_size=2, stride=2)    # Output Shape: (64, 26, 26)
+        self.pool3 = MaxPool2d(kernel_size=2, stride=2)
         self.flatten = Flatten()
-        self.dense1 = Dense(64*26*26, 128)
+        self.dense1 = Dense(64 * 26 * 26, 128)
         self.activation4 = RectifiedLinearUnit()
         self.dropout = Dropout(p=0.5)
         self.dense2 = Dense(128, 26)
@@ -69,9 +68,15 @@ class ASLClassifier(nn.Module):
 if __name__ == '__main__':
     use_cuda = torch.cuda.is_available()
 
-    # move model to GPU if CUDA is available
-    if use_cuda:
-        model = ASLClassifier().cuda()
-    else:
-        model = ASLClassifier()
+    # Define the device
+    device = torch.device("cuda" if use_cuda else "cpu")
+    print(device)
+
+    # Create the model
+    model = ASLClassifier()
+
+    # Sample input tensor (random initialization)
+    input_tensor = torch.randn(1, 3, 224, 224)
+
+    # Call the summary method
     model.summary()
