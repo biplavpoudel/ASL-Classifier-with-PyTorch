@@ -1,21 +1,32 @@
 import torch
 import torch.optim as optim
+from torch.optim.lr_scheduler import StepLR
 from CNN_Model import ASLClassifier
 from data_preparation import device_check, create_dataset, split_dataset
 from torch.nn import CrossEntropyLoss, MSELoss
 import time
 import os
+import matplotlib.pyplot as plt
 # Set the environment variable for PyTorch CUDA memory allocation configuration
 # os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'expandable_segments:True'
 
 
 def train_model(model, train_loader, valid_loader, criterion, optimizer, num_epochs, device, checkpoint_path):
     model.to(device)
-    start_time = time.time()
     best_valid_loss = float('inf')
+    valid_losses = []
+    train_losses = []
+    train_accuracies = []
+    valid_accuracies = []
+    total_time = 0
+    total_start_time = time.time()
+
     for epoch in range(num_epochs):
         model.train(True)
         running_loss = 0.0
+        train_corrects = 0.0
+        total_predictions = 0.0
+        start_time = time.time()
         for i, (images, labels) in enumerate(train_loader):
             images = images.to(device)
             labels = labels.to(device)
@@ -25,27 +36,67 @@ def train_model(model, train_loader, valid_loader, criterion, optimizer, num_epo
             loss.backward()
             optimizer.step()
             running_loss += loss.item()*images.size(0)
+            _, predicted = torch.max(outputs.data, 1)
+            total_predictions += labels.size(0)
+            train_corrects += (predicted == labels).sum().item()
+
+        epoch_train_loss = running_loss / len(train_loader.dataset)
+        train_losses.append(epoch_train_loss)
+        train_accuracy = train_corrects / len(train_loader)
+        train_accuracies.append(train_accuracy)
+        scheduler.step()
 
         model.eval()
         with torch.no_grad():
             valid_loss = 0.0
+            correct_val_predictions = 0.0
+            total_val_predictions = 0.0
             for i, (images, labels) in enumerate(valid_loader):
                 images = images.to(device)
                 labels = labels.to(device)
                 outputs = model(images)
                 valid_loss += criterion(outputs, labels).item()*images.size(0)
+                _, predicted = torch.max(outputs.data, 1)
+                total_val_predictions += labels.size(0)
+                correct_val_predictions += (predicted == labels).sum().item()
 
         # Printing training statistics
-        epoch_loss = running_loss / len(train_loader.dataset)
         epoch_val_loss = valid_loss / len(valid_loader.dataset)
+        valid_losses.append(epoch_val_loss)
+        epoch_accuracy = correct_val_predictions / total_val_predictions
+        valid_accuracies.append(epoch_accuracy)
         end_time = time.time()
-        print(f'Epoch {epoch+1}/{num_epochs}, Time taken:{end_time-start_time}, Train Loss: {epoch_loss:.4f}, Val Loss: {epoch_val_loss:.4f}')
+        print(f'Epoch {epoch+1}/{num_epochs}, Time taken:{(end_time-start_time)/60.0:.4f} minutes,'
+              f' Train Loss: {epoch_val_loss:.4f},'
+              f' Val Loss: {epoch_val_loss:.4f}, Validation Accuracy:{epoch_accuracy: .3f}')
 
         if epoch_val_loss < best_valid_loss:
             best_valid_loss = epoch_val_loss
             save_checkpoint(model, optimizer, epoch, best_valid_loss, device, checkpoint_path)
 
         torch.cuda.empty_cache()
+
+    total_end_time = time.time()
+    total_time_taken = total_end_time - total_start_time
+    print(f'Total Time Taken to train is {total_time_taken/60:.2f} minutes')
+
+    # For Plotting losses in each epoch
+    plt.plot(range(1, num_epochs + 1), train_losses, label='Train Loss')
+    plt.plot(range(1, num_epochs + 1), valid_losses, label='Validation Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('Train Loss vs Validation Loss')
+    plt.legend()
+
+    # For Plotting Accuracies in each epoch
+    plt.plot(range(1, num_epochs + 1), train_accuracies, label='Train Accuracy')
+    plt.plot(range(1, num_epochs + 1), valid_accuracies, label='Validation Accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.title('Train Accuracy vs Validation Accuracy')
+    plt.legend()
+
+    plt.show()
 
 
 def save_checkpoint(model, optimizer, epoch, best_valid_loss, device, checkpoint_path):
@@ -96,6 +147,7 @@ if __name__ == '__main__':
         momentum=0.9,
         weight_decay=0.0005
     )
+    scheduler = StepLR(optimizer, step_size=5, gamma=0.1)
 
     checkpoint_path = r'D:\ASL Classifier\model\checkpoints\checkpoint.pt'
 
@@ -108,7 +160,7 @@ if __name__ == '__main__':
         device = checkpoint['device']
         model.to(device)
         for state in optimizer.state.values():
-            for k,v in state.items():
+            for k, v in state.items():
                 if isinstance(v, torch.Tensor):
                     state[k] = v.to(device)
         print(f"Checkpoint loaded. Resuming training from epoch {epoch}.")

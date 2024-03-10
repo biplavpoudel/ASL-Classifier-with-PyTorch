@@ -21,23 +21,26 @@ def device_check():
 def create_dataset():
 
     # Preprocessing-function
+
     train_transforms = transforms.Compose([
-        transforms.Resize((256, 256)),
-        transforms.RandomResizedCrop(224),
+        transforms.Resize((224, 224)),
         transforms.RandomHorizontalFlip(),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),  # Add color jitter
         transforms.RandomRotation(degrees=5),
+        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=5),
+        # Add random affine transformation
+        transforms.RandomPerspective(distortion_scale=0.2, p=0.2),  # Add random perspective transformation
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
     test_transforms = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
+        transforms.Resize(224),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
-    train_dataset = ImageFolder(root="./Input/asl_alphabets/train", transform=train_transforms)
+    train_dataset = ImageFolder(root="./Input/asl_alphabets/train_new", transform=train_transforms)
     test_dataset = ImageFolder(root="./Input/asl_alphabets/test", transform=test_transforms)
 
     class_names = test_dataset.classes
@@ -70,13 +73,10 @@ def split_dataset(train_ds, test_ds, device):
 
     # wrap datasets into iterable datasets using DataLoader
 
-    train_loader = torch.utils.data.DataLoader(train_ds, batch_size=16, sampler=train_sampler, num_workers=4,
-                                               pin_memory=True, pin_memory_device=device)
+    train_loader = torch.utils.data.DataLoader(train_ds, batch_size=24, sampler=train_sampler, pin_memory=True)
 
-    valid_loader = torch.utils.data.DataLoader(train_ds, batch_size=16, sampler=valid_sampler, num_workers=4,
-                                               pin_memory=True, pin_memory_device=device)
-    test_loader = torch.utils.data.DataLoader(test_ds, batch_size=3, shuffle=False, num_workers=1,
-                                              pin_memory=True, pin_memory_device=device)
+    valid_loader = torch.utils.data.DataLoader(train_ds, batch_size=24, shuffle=False, sampler=valid_sampler, pin_memory=True)
+    test_loader = torch.utils.data.DataLoader(test_ds, batch_size=8, shuffle=False, pin_memory=True)
 
     loaders = dict(train=train_loader, valid=valid_loader, test=test_loader)
     return loaders

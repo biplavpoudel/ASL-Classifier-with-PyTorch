@@ -5,16 +5,17 @@ import torchvision.transforms as transforms
 import cv2 as cv
 import numpy as np
 
+# Load model
+model_path = r'D:\ASL Classifier\model\final_model.pt'
+final_model = ASLClassifier().to("cuda")
+final_model.load_state_dict(torch.load(model_path))
+final_model.eval()  # Set to evaluation mode
+
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
-
-model_path = r'D:\ASL Classifier\model\final_model.pt'
-final_model = ASLClassifier().to("cuda")
-final_model.load_state_dict(torch.load(model_path))
-final_model.eval()  # Set to evaluation mode
 
 
 def preprocess_frame(frame):
@@ -22,17 +23,14 @@ def preprocess_frame(frame):
     image = transform(image).unsqueeze(0)
     return image
 
-
 def webcam_frame_capture():
-    model_path = r'D:\ASL Classifier\model\final_model.pt'
-    final_model = ASLClassifier().to("cuda")
-    final_model.load_state_dict(torch.load(model_path))
-    final_model.eval()  # Set to evaluation mode
+
     cap = cv.VideoCapture(0)
 
     if not cap.isOpened():
         print("Error opening video stream from webcam")
         return
+
     try:
         while True:
             ret, frame = cap.read()
@@ -43,6 +41,7 @@ def webcam_frame_capture():
             # Get model predictions
             with torch.no_grad():
                 outputs = final_model(image.to("cuda"))
+                print(outputs[0])
 
             _, predicted = torch.max(outputs.data, 1)
             print(f"Predicted class index: {predicted.item()}")
@@ -51,7 +50,9 @@ def webcam_frame_capture():
 
             cv.putText(frame, idx_to_class, (50, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
+            # Display frame with hand landmarks
             cv.imshow('Hand Landmarks', frame)
+
             if cv.waitKey(1) & 0xFF == ord('q'):
                 break
     finally:
