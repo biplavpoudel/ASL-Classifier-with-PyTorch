@@ -1,1 +1,7 @@
 CustomLayers
+CustomLayers/Activation.py
+CustomLayers/Convolution.py
+CustomLayers/Dense.py
+CustomLayers/Dropout.py
+CustomLayers/Loss.py
+CustomLayers/MaxPool.py
