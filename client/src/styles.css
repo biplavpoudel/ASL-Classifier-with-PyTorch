@@ -1,0 +1,48 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh; 
+    background-color: #a5d8ff;
+    border: 4px solid #63b3ed;
+    border-radius: 10px;
+    padding: 20px;
+    margin: auto; 
+  }
+  .logo {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  .webcam-container {
+    display: flex;
+    flex-direction: column;
+    background-color: #e2e8f0;
+    padding: 20px;
+    border-radius: 10px;
+    width: 50%;
+  }
+  
+  .output-container {
+    display: flex;
+    justify-content: space-between;
+    width: 50%;
+    margin-top: 20px;
+  }
+  
+  .output-text {
+    background-color: #e2e8f0;
+    padding: 20px;
+    border-radius: 10px;
+    width: 75%;
+  }
+  
+  .audio-icon {
+    background-color: #3490dc;
+    color: #ffffff;
+    padding: 20px;
+    border-radius: 50%;
+  }
+  
